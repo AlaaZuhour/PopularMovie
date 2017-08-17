@@ -21,7 +21,7 @@ import java.util.Scanner;
     private static final String MOIVE_BASE_URL="http://api.themoviedb.org/3/movie/";
     private static final String API_KEY_PARAM="api_key";
     static String sortBy="popular";
-    private static final String API_KEY="";
+    private static final String API_KEY="b9581b245e2dac5a310e1052f6b528d7";
 
     static URL buildUrl(){
         Uri builtUri = Uri.parse(MOIVE_BASE_URL).buildUpon()
@@ -60,7 +60,7 @@ import java.util.Scanner;
 
         int id;
         double vote_average,popularity;
-        String title,poster_path,overview,release_date;
+        String title,posterPath,overview,releaseDate;
 
         JSONObject jsonObject = new JSONObject(jsonString);
         JSONArray moviesArray = jsonObject.getJSONArray("results");
@@ -72,10 +72,10 @@ import java.util.Scanner;
             vote_average= movieData.getDouble("vote_average");
             title = movieData.getString("title");
             popularity = movieData.getDouble("popularity");
-            poster_path = movieData.getString("poster_path");
+            posterPath = movieData.getString("poster_path");
             overview = movieData.getString("overview");
-            release_date = movieData.getString("release_date");
-            moviesList.add(new Movie(id,vote_average,title,popularity,poster_path,overview,release_date));
+            releaseDate = movieData.getString("release_date");
+            moviesList.add(new Movie(id,vote_average,title,popularity,posterPath,overview,releaseDate));
 
         }
       return moviesList;

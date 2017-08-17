@@ -2,6 +2,7 @@ package com.example.alaazuhouer.popularmoive;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.v4.app.LoaderManager;
@@ -33,6 +34,11 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        errorView = (TextView) findViewById(R.id.error_view);
+        gridView = (GridView) findViewById(R.id.movies_list);
+        int ot = getResources().getConfiguration().orientation;
+        gridView.setNumColumns(ot == Configuration.ORIENTATION_LANDSCAPE?3 : 2);
+
         if(savedInstanceState == null) {
             movieArrayList = new ArrayList<>();
             if(isDeviceOnline()) {
@@ -44,10 +50,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         else {
             movieArrayList = savedInstanceState.getParcelableArrayList("movies");
         }
-        errorView = (TextView) findViewById(R.id.error_view);
-        gridView = (GridView) findViewById(R.id.movies_list);
 
-
+        showMovieDataView();
 
     }
 

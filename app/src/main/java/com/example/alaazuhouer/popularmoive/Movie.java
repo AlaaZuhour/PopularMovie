@@ -7,42 +7,42 @@ class Movie implements Parcelable{
 
 
     private int id;
-    private double vote_average;
+    private double voteAverage;
     private String title;
     private double popularity;
-    private String poster_path;
+    private String posterPath;
     private String overview;
-    private String release_date;
+    private String releaseDate;
 
     Movie(int id, double vote_average, String title, double popularity,
           String poster_path, String overview, String release_date) {
         this.id = id;
-        this.vote_average = vote_average;
+        this.voteAverage = vote_average;
         this.title = title;
         this.popularity = popularity;
-        this.poster_path = poster_path;
+        this.posterPath = poster_path;
         this.overview = overview;
-        this.release_date = release_date;
+        this.releaseDate = release_date;
     }
 
     private Movie(Parcel in) {
         id = in.readInt();
-        vote_average = in.readDouble();
+        voteAverage = in.readDouble();
         title = in.readString();
         popularity = in.readDouble();
-        poster_path = in.readString();
+        posterPath= in.readString();
         overview = in.readString();
-        release_date = in.readString();
+        releaseDate = in.readString();
     }
     @Override
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeInt(id);
-        parcel.writeDouble(vote_average);
+        parcel.writeDouble(voteAverage);
         parcel.writeString(title);
         parcel.writeDouble(popularity);
-        parcel.writeString(poster_path);
+        parcel.writeString(posterPath);
         parcel.writeString(overview);
-        parcel.writeString(release_date);
+        parcel.writeString(releaseDate);
     }
     public static final Creator<Movie> CREATOR = new Creator<Movie>() {
         @Override
@@ -67,7 +67,7 @@ class Movie implements Parcelable{
     }
 
     double getVote_average() {
-        return vote_average;
+        return voteAverage;
     }
 
     String getTitle() {
@@ -75,7 +75,7 @@ class Movie implements Parcelable{
     }
 
     String getPoster_path() {
-        return poster_path;
+        return posterPath;
     }
 
 
@@ -86,7 +86,7 @@ class Movie implements Parcelable{
 
 
     String getRelease_date() {
-        return release_date;
+        return releaseDate;
     }
 
 
