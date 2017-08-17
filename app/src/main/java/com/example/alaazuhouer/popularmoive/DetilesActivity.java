@@ -29,7 +29,7 @@ public class DetilesActivity extends AppCompatActivity {
         overview = (TextView) findViewById(R.id.movie_overview);
         movieImage = (ImageView) findViewById(R.id.movie_image);
 
-        if(intent.hasExtra("movie_item")){
+        if(intent != null && intent.hasExtra("movie_item")){
             Movie movie = intent.getParcelableExtra("movie_item");
             title.setText(movie.getTitle());
             String avgRate = getString(R.string.ratting)+movie.getVote_average();
