@@ -22,15 +22,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
+                android:adjustViewBounds="false"
                 app:srcCompat="@android:drawable/btn_default" />
 
             <TextView
                 android:id="@+id/movie_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="32dp"
-                android:layout_marginStart="32dp"
+                android:layout_gravity="center"
+                android:gravity="center"
                 android:padding="5dp"
+                android:textAlignment="center"
                 android:textColor="@android:color/black"
                 android:textSize="20sp"
                 android:textStyle="normal|bold" />
@@ -49,7 +51,7 @@
                 android:id="@+id/movie_date"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="19dp"
+                android:layout_marginTop="5dp"
                 android:padding="5dp"
                 android:textColor="@android:color/black"
                 android:textSize="18sp"
@@ -61,7 +63,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="8dp"
                 android:textColor="@android:color/black"
                 android:textStyle="bold" />
 
