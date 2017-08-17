@@ -5,8 +5,8 @@
     <string name="error_message_text"> An error has occurred. Please try again</string>
     <string name="no_connection_message">No network connection available.</string>
     <string name="detiles_activity">Movie Detiles</string>
-    <string name="ratting">Ratting: %d</string>
-    <string name="date">Release Date: %s</string>
+    <string name="ratting">Ratting: </string>
+    <string name="date">Release Date: </string>
 
 
 </resources>
