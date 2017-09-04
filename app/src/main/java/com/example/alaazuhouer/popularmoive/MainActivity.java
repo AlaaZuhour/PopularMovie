@@ -3,13 +3,20 @@ package com.example.alaazuhouer.popularmoive;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,47 +26,48 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 
+import com.example.alaazuhouer.popularmoive.data.MovieContract;
+import com.example.alaazuhouer.popularmoive.sync.MovieSyncTasks;
+import com.example.alaazuhouer.popularmoive.sync.MovieSyncUtils;
+
 import org.json.JSONException;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Movie>>{
-    private ArrayList<Movie> movieArrayList;
-    private GridView gridView;
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>,
+        MovieAdapter.OnMovieClickListener{
+    private RecyclerView mRecyclerView;
     private static final int MOVIE_LOADER_ID = 22;
     private TextView errorView;
+    private Cursor mCursor;
+    private MovieAdapter mMovieAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         errorView = (TextView) findViewById(R.id.error_view);
-        gridView = (GridView) findViewById(R.id.movies_list);
+        mRecyclerView = (RecyclerView) findViewById(R.id.movies_list);
         int ot = getResources().getConfiguration().orientation;
-        gridView.setNumColumns(ot == Configuration.ORIENTATION_LANDSCAPE?3 : 2);
+        GridLayoutManager layoutManager =
+                new GridLayoutManager(this,ot == Configuration.ORIENTATION_LANDSCAPE ? 3 : 2);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setHasFixedSize(true);
+        mMovieAdapter = new MovieAdapter(this,this);
+        mRecyclerView.setAdapter(mMovieAdapter);
 
-        if(savedInstanceState == null) {
-            movieArrayList = new ArrayList<>();
-            if(isDeviceOnline()) {
-                getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
-            }else {
-                showErrorMessage(getString(R.string.no_connection_message));
-            }
-        }
-        else {
-            movieArrayList = savedInstanceState.getParcelableArrayList("movies");
-        }
 
-        showMovieDataView();
+        getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+        MovieSyncUtils.initialize(this);
+
+
+
+
 
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("movies",movieArrayList);
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -72,68 +80,43 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         int id = item.getItemId();
 
         if (id == R.id.popularity) {
-            FetchMoivesData.sortBy="popular";
-            if(isDeviceOnline()) {
-                getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID,null,this);
-            }else {
-                showErrorMessage(getString(R.string.no_connection_message));
-            }
+            Cursor cursor = this.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                    null,null,null, MovieContract.MovieEntry.COLUMN_POPULARITY+" DESC");
+            mMovieAdapter.swapCursor(cursor);
             return true;
         }
 
         if (id == R.id.top_rated) {
-            FetchMoivesData.sortBy="top_rated";
-            if(isDeviceOnline()) {
-                getSupportLoaderManager().restartLoader(MOVIE_LOADER_ID,null,this);
-            }else {
-                showErrorMessage(getString(R.string.no_connection_message));
-            }
+            Cursor cursor = this.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                    null,null,null, MovieContract.MovieEntry.COLUMN_VOTE_AVERAGE+" DESC");
+            mMovieAdapter.swapCursor(cursor);
             return true;
+        }
+        if(id == R.id.favorite){
+            String[] selectionArg = {1+""};
+            Cursor cursor = this.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                    null, MovieContract.MovieEntry.COLUMN_FAVORIT+" = ?",selectionArg, null);
+            mMovieAdapter.swapCursor(cursor);
+            return true;
+
         }
 
         return super.onOptionsItemSelected(item);
     }
 
     @Override
-    public Loader<ArrayList<Movie>> onCreateLoader(int id, Bundle args) {
-        return new AsyncTaskLoader<ArrayList<Movie>>(this) {
-            ArrayList<Movie> movieData;
-            @Override
-            protected void onStartLoading() {
-                if(movieData != null)
-                    deliverResult(movieData);
-                else
-                    forceLoad();
-            }
-
-            @Override
-            public ArrayList<Movie> loadInBackground() {
-                URL url = FetchMoivesData.buildUrl();
-                String jsonString;
-
-                try {
-                    jsonString=FetchMoivesData.getResponseFromHttpUrl(url);
-                    return  movieArrayList=FetchMoivesData.getJsonFromString(jsonString);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return null;
-                } catch (JSONException ej) {
-                    ej.printStackTrace();
-                    return null;
-                }
-            }
-            public void deliverResult(ArrayList<Movie> data) {
-                movieData = data;
-                super.deliverResult(data);
-            }
-        };
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(this, MovieContract.MovieEntry.CONTENT_URI,
+                null,null,null,null);
     }
 
     @Override
-    public void onLoadFinished(Loader<ArrayList<Movie>> loader, ArrayList<Movie> data) {
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
        if(data != null) {
-           movieArrayList = data;
-           showMovieDataView();
+           mCursor=data;
+           mMovieAdapter.swapCursor(data);
+           if(data.getCount() != 0)
+               showMovieDataView();
        }else {
            showErrorMessage(getString(R.string.error_message_text));
        }
@@ -141,28 +124,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
-    public void onLoaderReset(Loader<ArrayList<Movie>> loader) {
-
+    public void onLoaderReset(Loader<Cursor> loader) {
+       mMovieAdapter.swapCursor(null);
     }
     private void showMovieDataView() {
-        MovieAdapter movieAdapter;
-        movieAdapter = new MovieAdapter(MainActivity.this, movieArrayList);
-        gridView.setAdapter(movieAdapter);
         errorView.setVisibility(View.INVISIBLE);
-        gridView.setVisibility(View.VISIBLE);
-        gridView.setOnItemClickListener(new GridView.OnItemClickListener(){
-
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent =new Intent(MainActivity.this,DetilesActivity.class);
-                intent.putExtra("movie_item",movieArrayList.get((int)view.getTag()));
-                startActivity(intent);
-            }
-        });
+        mRecyclerView.setVisibility(View.VISIBLE);
     }
 
     private void showErrorMessage(String message) {
-        gridView.setVisibility(View.INVISIBLE);
+        mRecyclerView.setVisibility(View.INVISIBLE);
         errorView.setVisibility(View.VISIBLE);
         errorView.setText(message);
     }
@@ -172,5 +143,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         return (networkInfo != null && networkInfo.isConnected());
+    }
+
+    @Override
+    public void onMovieClick(Movie movie) {
+        Intent intent =new Intent(MainActivity.this,DetilesActivity.class);
+        intent.putExtra("movie_item",movie);
+        startActivity(intent);
     }
 }

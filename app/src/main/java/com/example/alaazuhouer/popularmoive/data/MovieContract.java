@@ -28,7 +28,7 @@ public class MovieContract {
         public static final String COLUMN_TITLE = "title";
         public static final String COLUMN_VOTE_AVERAGE = "vote_average";
         public static final String COLUMN_OVERVIEW = "overview";
-
+        public static final String COLUMN_FAVORIT = "favorit";
 
     }
 
