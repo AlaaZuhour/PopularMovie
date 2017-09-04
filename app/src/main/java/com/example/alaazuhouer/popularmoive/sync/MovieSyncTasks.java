@@ -34,6 +34,14 @@ public class MovieSyncTasks {
                 contentResolver.delete(MovieContract.MovieEntry.CONTENT_URI,null,null);
                 contentResolver.bulkInsert(MovieContract.MovieEntry.CONTENT_URI,contentValues);
             }
+            url = FetchMoivesData.buildUrl("","top_rated");
+            jsonString=FetchMoivesData.getResponseFromHttpUrl(url);
+            contentValues=FetchMoivesData.getMovieJsonFromString(jsonString);
+            if(contentValues != null && contentValues.length != 0){
+                ContentResolver contentResolver = context.getContentResolver();
+                contentResolver.delete(MovieContract.TopRatedMovieEntry.CONTENT_URI,null,null);
+                contentResolver.bulkInsert(MovieContract.TopRatedMovieEntry.CONTENT_URI,contentValues);
+            }
         } catch (IOException e) {
             e.printStackTrace();
 
@@ -47,18 +55,30 @@ public class MovieSyncTasks {
     public static void syncTrailersAndReviews(final Context context){
 
               String[] projection = {MovieContract.MovieEntry.COLUMN_MOVIE_ID};
+              String[] projection1 = {MovieContract.TopRatedMovieEntry.COLUMN_MOVIE_ID};
                 Cursor cursor = context.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
                         projection,null,null,null);
+                Cursor cursor1 = context.getContentResolver().query(MovieContract.TopRatedMovieEntry.CONTENT_URI,
+                        projection1,null,null,null);
                 int j=0;
                 if(cursor != null && cursor.getCount() != 0){
-                    moviesId = new int[cursor.getCount()];
+                    moviesId = new int[45];
                     if(cursor.moveToFirst()){
                       do {
                           moviesId[j] = cursor.getInt(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_ID));
                           j++;
-                      }while (cursor.moveToNext());
+                      }while (cursor.moveToNext() );
                     }
                 }
+
+        if(cursor1 != null && cursor1.getCount() != 0){
+            if(cursor1.moveToFirst()){
+                do {
+                    moviesId[j] = cursor1.getInt(cursor1.getColumnIndex(MovieContract.TopRatedMovieEntry.COLUMN_MOVIE_ID));
+                    j++;
+                }while (cursor1.moveToNext() );
+            }
+        }
 
         if(moviesId != null && moviesId.length !=0){
             for(int i=0;i<moviesId.length;i++){

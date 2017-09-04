@@ -7,6 +7,8 @@
     <string name="detiles_activity">Movie Detiles</string>
     <string name="ratting">Ratting: </string>
     <string name="date">Release Date: </string>
+    <string name="pref_favorit">Favorite</string>
+    <string name="pref_not_favorit">not favorite</string>
 
 
 </resources>

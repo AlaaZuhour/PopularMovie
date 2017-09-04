@@ -44,6 +44,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private TextView errorView;
     private Cursor mCursor;
     private MovieAdapter mMovieAdapter;
+    private int sortOrder;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -58,16 +59,40 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         mMovieAdapter = new MovieAdapter(this,this);
         mRecyclerView.setAdapter(mMovieAdapter);
 
-
-        getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
-        MovieSyncUtils.initialize(this);
-
-
-
-
+        if(savedInstanceState == null) {
+            getSupportLoaderManager().initLoader(MOVIE_LOADER_ID, null, this);
+            MovieSyncUtils.initialize(this);
+        }
+        else{
+            Cursor cursor;
+            sortOrder = savedInstanceState.getInt("sort_order");
+            switch (sortOrder){
+                case 1:
+                    cursor = this.getContentResolver().query(MovieContract.TopRatedMovieEntry.CONTENT_URI,
+                            null,null,null, null);
+                    mMovieAdapter.swapCursor(cursor);
+                    break;
+                case 2:
+                    cursor = this.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                            null,null,null, MovieContract.MovieEntry.COLUMN_POPULARITY+" DESC");
+                    mMovieAdapter.swapCursor(cursor);
+                    break;
+                case 3:
+                    String[] selectionArg = {1+""};
+                    cursor = this.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
+                            null, MovieContract.MovieEntry.COLUMN_FAVORIT+" = ?",selectionArg, null);
+                    mMovieAdapter.swapCursor(cursor);
+                    break;
+            }
+        }
 
     }
 
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putInt("sort_order",sortOrder);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -80,6 +105,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         int id = item.getItemId();
 
         if (id == R.id.popularity) {
+            sortOrder = 2;
             Cursor cursor = this.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
                     null,null,null, MovieContract.MovieEntry.COLUMN_POPULARITY+" DESC");
             mMovieAdapter.swapCursor(cursor);
@@ -87,12 +113,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         }
 
         if (id == R.id.top_rated) {
-            Cursor cursor = this.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
-                    null,null,null, MovieContract.MovieEntry.COLUMN_VOTE_AVERAGE+" DESC");
+            sortOrder = 1;
+            Cursor cursor = this.getContentResolver().query(MovieContract.TopRatedMovieEntry.CONTENT_URI,
+                    null,null,null, null);
             mMovieAdapter.swapCursor(cursor);
             return true;
         }
         if(id == R.id.favorite){
+            sortOrder =3;
             String[] selectionArg = {1+""};
             Cursor cursor = this.getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI,
                     null, MovieContract.MovieEntry.COLUMN_FAVORIT+" = ?",selectionArg, null);

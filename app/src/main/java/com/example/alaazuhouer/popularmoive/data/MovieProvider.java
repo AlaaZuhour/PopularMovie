@@ -18,6 +18,7 @@ public class MovieProvider extends ContentProvider {
     static final int MOVIE = 100;
     static final int TRAILER = 200;
     static final int REVIEW = 300;
+    static final int TOP_RATED_MOVIE = 400;
     static final int REVIEW_WITH_ID = 301;
     static final int TRAILER_WITH_ID = 201;
     private MovieDBHelper movieDBHelper;
@@ -30,6 +31,8 @@ public class MovieProvider extends ContentProvider {
         uri.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.PATH_TRAILER+"/#",TRAILER_WITH_ID);
         uri.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.PATH_REVIEW,REVIEW);
         uri.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.PATH_REVIEW+"/#",REVIEW_WITH_ID);
+        uri.addURI(MovieContract.CONTENT_AUTHORITY,MovieContract.PATH_TOP_RATED,TOP_RATED_MOVIE);
+
         return uri;
     }
 
@@ -49,6 +52,23 @@ public class MovieProvider extends ContentProvider {
                 try {
                     for (ContentValues value : values) {
                         long id = sqLiteDatabase.insert(MovieContract.MovieEntry.TABLE_NAME, null, value);
+                        if (id != -1)
+                            rowInserted++;
+                    }
+                    sqLiteDatabase.setTransactionSuccessful();
+                }finally {
+                    sqLiteDatabase.endTransaction();
+                }
+                if (rowInserted > 0) {
+                    getContext().getContentResolver().notifyChange(uri, null);
+                }
+
+                return rowInserted;
+            case TOP_RATED_MOVIE:
+                sqLiteDatabase.beginTransaction();
+                try {
+                    for (ContentValues value : values) {
+                        long id = sqLiteDatabase.insert(MovieContract.TopRatedMovieEntry.TABLE_NAME, null, value);
                         if (id != -1)
                             rowInserted++;
                     }
@@ -112,6 +132,10 @@ public class MovieProvider extends ContentProvider {
                 retCursor = sqLiteDatabase.query(MovieContract.MovieEntry.TABLE_NAME,
                         strings,s,strings1,null,null,s1);
                 break;
+            case TOP_RATED_MOVIE:
+                retCursor = sqLiteDatabase.query(MovieContract.TopRatedMovieEntry.TABLE_NAME,
+                        strings,s,strings1,null,null,s1);
+                break;
             case TRAILER_WITH_ID:
                 String id = uri.getLastPathSegment();
                 String[] selectionArg = {id};
@@ -160,6 +184,10 @@ public class MovieProvider extends ContentProvider {
                         MovieContract.MovieEntry.TABLE_NAME, s, strings);
                 break;
             }
+            case TOP_RATED_MOVIE:
+                rowsDeleted = db.delete(
+                        MovieContract.TopRatedMovieEntry.TABLE_NAME, s, strings);
+                break;
             case TRAILER: {
                 rowsDeleted = db.delete(
                         MovieContract.TrailersEntry.TABLE_NAME, s,strings);
@@ -194,6 +222,10 @@ public class MovieProvider extends ContentProvider {
         switch (match) {
             case MOVIE:
                 rowsUpdated = db.update(MovieContract.MovieEntry.TABLE_NAME, values, s,
+                        strings);
+                break;
+            case TOP_RATED_MOVIE:
+                rowsUpdated = db.update(MovieContract.TopRatedMovieEntry.TABLE_NAME, values, s,
                         strings);
                 break;
             case TRAILER:
