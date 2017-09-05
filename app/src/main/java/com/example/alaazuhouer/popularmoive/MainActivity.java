@@ -44,7 +44,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private TextView errorView;
     private Cursor mCursor;
     private MovieAdapter mMovieAdapter;
-    private int sortOrder;
+    private int sortOrder=2;
+    private GridLayoutManager layoutManager;
+    private Parcelable listState;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         errorView = (TextView) findViewById(R.id.error_view);
         mRecyclerView = (RecyclerView) findViewById(R.id.movies_list);
         int ot = getResources().getConfiguration().orientation;
-        GridLayoutManager layoutManager =
+        layoutManager =
                 new GridLayoutManager(this,ot == Configuration.ORIENTATION_LANDSCAPE ? 3 : 2);
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setHasFixedSize(true);
@@ -92,8 +94,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putInt("sort_order",sortOrder);
+        listState = layoutManager.onSaveInstanceState();
+        outState.putParcelable("state",listState);
+
     }
 
+    @Override
+    protected void onRestoreInstanceState(Bundle state) {
+        super.onRestoreInstanceState(state);
+        if(state != null)
+            listState = state.getParcelable("state");
+    }
+    protected void onResume() {
+        super.onResume();
+        if (listState != null) {
+            layoutManager.onRestoreInstanceState(listState);
+        }
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();

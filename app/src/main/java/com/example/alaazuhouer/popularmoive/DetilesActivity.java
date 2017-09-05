@@ -21,6 +21,7 @@ import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.example.alaazuhouer.popularmoive.data.MovieContract;
@@ -33,6 +34,8 @@ public class DetilesActivity extends AppCompatActivity {
     private static final String IMAGE_URL="http:image.tmdb.org/t/p/";
     private static final String IMAGE_SIZE="w342/";
     private Movie movie;
+    private ScrollView mScrollView ;
+    private  int[] position;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +46,7 @@ public class DetilesActivity extends AppCompatActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         TextView title,rate,date,overview;
         ImageView movieImage;
+        mScrollView = (ScrollView) findViewById(R.id.scroll_view);
         ListView trailerList = (ListView) findViewById(R.id.trailers_list);
         ListView reviewList = (ListView) findViewById(R.id.reviews_list);
         Intent intent = getIntent();
@@ -129,14 +133,44 @@ public class DetilesActivity extends AppCompatActivity {
 
 
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putIntArray("SCROLL_POSITION",
+                new int[]{ mScrollView.getScrollX(), mScrollView.getScrollY()});
+    }
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        position = savedInstanceState.getIntArray("SCROLL_POSITION");
+        if(position != null)
+            mScrollView.post(new Runnable() {
+                public void run() {
+                    mScrollView.scrollTo(position[0], position[1]);
+                }
+            });
+    }
+
+    @Override
+    protected void onResume() {
+        if(position != null)
+            mScrollView.post(new Runnable() {
+                public void run() {
+                    mScrollView.scrollTo(position[0], position[1]);
+                }
+            });
+        super.onResume();
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.detiles_menu, menu);
-        if(movie.isFavorit()){
+        if (movie.isFavorit()) {
             menu.getItem(0).setIcon(getResources().getDrawable(android.R.drawable.star_big_on));
-        }else {
+            menu.getItem(0).setTitle((getString(R.string.pref_favorit)));
+        } else {
             menu.getItem(0).setIcon(getResources().getDrawable(android.R.drawable.star_big_off));
+            menu.getItem(0).setTitle(getString(R.string.pref_not_favorit));
         }
         return true;
     }
